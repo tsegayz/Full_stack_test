@@ -27,13 +27,11 @@ const ImageSlider = () => {
 		const scrollContainer = containerRef.current;
 
 		const scrollInterval = setInterval(() => {
-			scrollContainer.scrollLeft += 1; // Adjust scroll speed as needed
-		}, 50); // Adjust scroll interval as needed
-
-		// Stop automatic scrolling after 3 seconds
+			scrollContainer.scrollLeft += 1; 
+		}, 20); 
 		setTimeout(() => {
 			clearInterval(scrollInterval);
-		}, 3000);
+		}, 2000);
 
 		return () => clearInterval(scrollInterval);
 	}, []);
