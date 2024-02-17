@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import axios from "axios";
 import { FaApple, FaStar } from "react-icons/fa";
 import {
@@ -27,8 +30,8 @@ const ImageSlider = () => {
 		const scrollContainer = containerRef.current;
 
 		const scrollInterval = setInterval(() => {
-			scrollContainer.scrollLeft += 1; 
-		}, 20); 
+			scrollContainer.scrollLeft += 1;
+		}, 20);
 		setTimeout(() => {
 			clearInterval(scrollInterval);
 		}, 2000);
@@ -108,7 +111,28 @@ const ImageSlider = () => {
 		{ title: "Appliances", icon: <MdWash /> },
 		{ title: "keyboard", icon: <MdKeyboard /> },
 	];
-
+	const settings = {
+		dots: false,
+		infinite: true,
+		speed: 500,
+		slidesToShow: 3,
+		slidesToScroll: 1,
+		autoplay: true,
+		autoplaySpeed: 3000,
+		arrows: true,
+		centerMode: true,
+		focusOnSelect: true,
+		responsive: [
+			{
+				breakpoint: 768,
+				settings: {
+					slidesToShow: 1,
+					centerMode: true,
+					centerPadding: "40px",
+				},
+			},
+		],
+	};
 	return (
 		<div className='slider-container'>
 			<div className='appBar'>
@@ -149,21 +173,14 @@ const ImageSlider = () => {
 				</div>
 				<div className='loginSignup'>Login / Signup</div>
 			</div>
-			<div className='image-slider'>
+			<Slider {...settings}>
 				{images.map((image, index) => (
-					<div
-						key={image.mainBannerId}
-						className={`slide ${index === currentIndex ? "active" : ""}`}
-						style={{ transform: `translateX(-${(currentIndex - 1) * 33.33}%)` }}
-					>
-						<img
-							src={image.pcImageUrl}
-							alt={image.title}
-							className='slider-image'
-						/>
+					<div key={index} className='slide'>
+						<img src={image.pcImageUrl} alt={image.title} />
 					</div>
 				))}
-			</div>
+			</Slider>
+
 			<button className='prev' onClick={goToPrevSlide}>
 				{"<"}
 			</button>
