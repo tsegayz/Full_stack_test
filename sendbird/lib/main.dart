@@ -1,125 +1,210 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChatDetail(););
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class ChatDetail extends StatelessWidget {
+  final String name;
+  final String chatId;
+  final messageCtrl = TextEditingController();
+  ChatDetail(this.name, this.chatId);
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 239, 239, 239),
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        toolbarHeight: 70,
+        title: Text(
+          name,
+          style: TextStyle(color: Colors.black, fontSize: 20),
         ),
+        backgroundColor: Colors.grey[200],
+        elevation: 2.0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: Column(children: [
+        Expanded(
+          child: BlocBuilder<AuthBloc, AuthState>(
+            builder: (_, authState) {
+              if (!(authState is LoginSuccessful)) {
+                return Text("You are not Logged in!");
+              }
+              return BlocConsumer<MessageBloc, MessageState>(
+                  listener: (_, state) {
+                if (state is MessageSentSuccessful) {
+                  final messageBloc = BlocProvider.of<MessageBloc>(context);
+                  messageBloc.add(LoadMessages(this.chatId));
+                }
+              }, builder: (context, state) {
+                if (state is MessageLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (state is SendingMessage) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (state is MessagesLoadingFailure) {
+                  return Center(
+                    child: Text("Couldn't load messages"),
+                  );
+                }
+                if (state is MessageSendingFailure) {
+                  return Center(
+                    child: Text("Couldn't Send message."),
+                  );
+                }
+                if (state is MessagesLoadSuccess) {
+                  return state.messages.isNotEmpty
+                      ? ListView.builder(
+                          reverse: true,
+                          itemCount: state.messages.length,
+                          itemBuilder: (_, index) => Align(
+                              alignment: authState.userId.id ==
+                                      state.messages[index].owner
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                  margin: EdgeInsets.all(10),
+                                  color: authState.userId.id ==
+                                          state.messages[index].owner
+                                      ? Colors.indigoAccent
+                                      : Colors.black12,
+                                  // decoration: BoxDecoration(
+                                  //   shape: BoxShape.rectangle,
+                                  //   borderRadius: BorderRadius.circular(50),),
+                                  // decoration: BoxDecoration( borderRadius: BorderRadius.circular(50)),
+                                  // decoration: BoxDecoration(borderRadius: BorderRadiusGeometry()),
+                                  // color: Colors.black12/,
+                                  padding: EdgeInsets.all(20),
+                                  child: Text(state.messages[index].text))))
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Center(
+                              child: Container(
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.indigoAccent,
+                                  radius: 50,
+                                  child: Icon(
+                                    Icons.sentiment_very_dissatisfied,
+                                    size: 100,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                height: 200,
+                                width: 200,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(100),
+                                  shape: BoxShape.rectangle,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Center(
+                              child: Text(
+                                "The User doesn't exist.",
+                                style: TextStyle(
+                                  color: Colors.indigoAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 23,
+                                ),
+                              ),
+                            )
+                          ],
+                        );
+                }
+                return Text("Never Come Here");
+              });
+            },
+          ),
+        ),
+        //message to be sent
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(
+              8,
+            ),
+            child: Container(
+              padding: EdgeInsets.only(left: 10),
+              height: 55,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextField(
+                      controller: messageCtrl,
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0), fontSize: 20),
+                      decoration: InputDecoration(
+                          hintText: "Type message.........",
+                          hintStyle:
+                              TextStyle(color: Colors.black87, fontSize: 18),
+                          border: InputBorder.none),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 40,
+                    child: BlocBuilder<AuthBloc, AuthState>(
+                      builder: (context, state) {
+                        if (state is! LoginSuccessful) {
+                          return Text("You havent Logged in");
+                        }
+                        return BlocBuilder<MessageBloc, MessageState>(
+                          builder: (context, messageState) {
+                            if (messageState is MessagesLoadSuccess) {
+                              return FloatingActionButton(
+                                backgroundColor: Colors.white,
+                                onPressed: () {
+                                  final messageBloc =
+                                      BlocProvider.of<MessageBloc>(context);
+                                  messageBloc.add(
+                                    CreateMessage(
+                                      this.chatId,
+                                      Message(
+                                        text: messageCtrl.text,
+                                        owner: state.userId.id!,
+                                        chat: this.chatId,
+                                        time: DateTime.now(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Icon(
+                                  Icons.send,
+                                  color: Color.fromARGB(255, 31, 97, 249),
+                                  size: 20,
+                                ),
+                              );
+                            }
+                            return FloatingActionButton(
+                              backgroundColor: Colors.white,
+                              onPressed: () {},
+                              child: Icon(
+                                Icons.send,
+                                color: Color.fromARGB(255, 31, 97, 249),
+                                size: 20,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }

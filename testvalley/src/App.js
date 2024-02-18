@@ -3,7 +3,9 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import axios from "axios";
-import { FaApple, FaStar } from "react-icons/fa";
+import { FaApple, FaStar, FaTruck } from "react-icons/fa";
+import { GiReturnArrow } from "react-icons/gi";
+
 import {
 	MdMenu,
 	MdSearch,
@@ -17,6 +19,8 @@ import {
 	MdComputer,
 	MdWash,
 	MdKeyboard,
+	MdArrowBackIos,
+	MdArrowForwardIos,
 } from "react-icons/md";
 
 const ImageSlider = () => {
@@ -25,19 +29,6 @@ const ImageSlider = () => {
 	const [images, setImages] = useState([]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const containerRef = useRef(null);
-
-	useEffect(() => {
-		const scrollContainer = containerRef.current;
-
-		const scrollInterval = setInterval(() => {
-			scrollContainer.scrollLeft += 1;
-		}, 20);
-		setTimeout(() => {
-			clearInterval(scrollInterval);
-		}, 2000);
-
-		return () => clearInterval(scrollInterval);
-	}, []);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -76,18 +67,6 @@ const ImageSlider = () => {
 		return () => clearInterval(intervalId);
 	}, [images]);
 
-	const goToPrevSlide = () => {
-		setCurrentIndex((prevIndex) =>
-			prevIndex === 0 ? images.length - 1 : prevIndex - 1
-		);
-	};
-
-	const goToNextSlide = () => {
-		setCurrentIndex((prevIndex) =>
-			prevIndex === images.length - 1 ? 0 : prevIndex + 1
-		);
-	};
-
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [showSearchResult, setShowSearchResult] = useState(false);
 
@@ -119,20 +98,45 @@ const ImageSlider = () => {
 		slidesToScroll: 1,
 		autoplay: true,
 		autoplaySpeed: 3000,
-		arrows: true,
-		centerMode: true,
-		focusOnSelect: true,
+		arrows: false,
+		centerPadding: "0%",
 		responsive: [
+			{
+				breakpoint: 1024,
+				settings: {
+					slidesToShow: 3,
+					slidesToScroll: 1,
+				},
+			},
 			{
 				breakpoint: 768,
 				settings: {
 					slidesToShow: 1,
-					centerMode: true,
-					centerPadding: "40px",
+					slidesToScroll: 1,
+					
 				},
 			},
 		],
 	};
+
+	const scrollLeft = (sliderId) => {
+		const slider = document.getElementById(sliderId);
+		const scrollAmount = slider.scrollLeft - window.innerWidth;
+		slider.scrollTo({
+			left: scrollAmount,
+			behavior: "smooth",
+		});
+	};
+
+	const scrollRight = (sliderId) => {
+		const slider = document.getElementById(sliderId);
+		const scrollAmount = slider.scrollLeft + window.innerWidth;
+		slider.scrollTo({
+			left: scrollAmount,
+			behavior: "smooth",
+		});
+	};
+
 	return (
 		<div className='slider-container'>
 			<div className='appBar'>
@@ -173,20 +177,15 @@ const ImageSlider = () => {
 				</div>
 				<div className='loginSignup'>Login / Signup</div>
 			</div>
-			<Slider {...settings}>
-				{images.map((image, index) => (
-					<div key={index} className='slide'>
-						<img src={image.pcImageUrl} alt={image.title} />
-					</div>
-				))}
-			</Slider>
-
-			<button className='prev' onClick={goToPrevSlide}>
-				{"<"}
-			</button>
-			<button className='next' onClick={goToNextSlide}>
-				{">"}
-			</button>
+			<div className='image-slider-container' id='slider'>
+				<Slider {...settings}>
+					{images.map((image, index) => (
+						<div key={index} className='slide'>
+							<img src={image.pcImageUrl} alt={image.title} />
+						</div>
+					))}
+				</Slider>
+			</div>
 			<div className='shortcuts-container'>
 				{shortcuts.map((shortcut) => (
 					<div className='shortcut' key={shortcut.mainShortcutId}>
@@ -204,54 +203,152 @@ const ImageSlider = () => {
 								<p>{item.subtitle}</p>
 							</div>
 							<div className='right'>
-								<div className='item-container' ref={containerRef}>
+								<div className='item-container' ref={containerRef} id='slider'>
+									<div className='scroll-icons left-content'>
+										<MdArrowBackIos
+											className='scroll-trip scroll-icon-left'
+											style={{
+												fontSize: "13px",
+												color: "rgb(194, 194, 194)",
+												marginRight: "1px",
+											}}
+											onClick={() => scrollLeft("slider")}
+										/>
+										<MdArrowForwardIos
+											className='scroll-trip scroll-icon-right'
+											style={{
+												fontSize: "13px",
+												color: "rgb(194, 194, 194)",
+												marginLeft: "10px",
+											}}
+											onClick={() => scrollRight("slider")}
+										/>
+									</div>
 									{item.items.map((value) => (
 										<div className='item-wrapper' key={value.publication.id}>
 											<div className='each'>
-												<div className='img-container'>
+												<div
+													className='img-container'
+													style={{ position: "relative" }}
+												>
 													{value.publication.media.map((one, index) => (
-														<img src={one.uri} alt={one.title} key={index} />
+														<div
+															key={index}
+															style={{
+																position: "relative",
+																display: "inline-block",
+															}}
+														>
+															<img
+																src={one.uri}
+																alt={one.title}
+																style={{ width: "100%" }}
+															/>
+															{value.publication.isTrial && (
+																<p
+																	style={{
+																		width: "49%",
+																		position: "absolute",
+																		bottom: "5px",
+																		left: "5px",
+																		backgroundColor: "rgb(20, 139, 134)",
+																		color: "white",
+																		display: "flex",
+																		fontSize: "14px",
+																		padding: "3px 6px",
+																		borderRadius: "2px",
+																		zIndex: 1,
+																	}}
+																>
+																	<GiReturnArrow
+																		style={{
+																			paddingRight: "5px",
+																			fontSize: "17px",
+																		}}
+																	/>
+																	returnable
+																</p>
+															)}
+														</div>
 													))}
 												</div>
+
 												<p>{value.publication.title}</p>
-												<p>
+												<div className="discount">
 													{value.publication.priceInfo.discountRate !==
 														undefined &&
 													value.publication.priceInfo.discountRate !== 0 ? (
-														<p>
+														<h3
+															style={{
+																fontSize: "20px",
+																fontWeight: "100",
+																margin: "2px 0",
+															}}
+														>
 															{value.publication.priceInfo.discountRate}%{" "}
 															{value.publication.priceInfo.price} 원
-														</p>
+														</h3>
 													) : (
 														<p>{value.publication.priceInfo.price} 원</p>
 													)}
-												</p>
+												</div>
 												<span>
 													{value.publication.applyCoupon && (
 														<p
 															style={{
-																backgroundColor: "rgb(228, 228, 228)",
+																backgroundColor: "rgb(245, 245, 245)",
 																width: "25%",
 																fontSize: "12px",
 																padding: "2px 5px",
 																borderRadius: "5px",
 															}}
 														>
-															{" "}
 															coupon
 														</p>
 													)}
 												</span>
-												<span style={{ display: "flex", marginTop: "10px" }}>
+												<span
+													style={{
+														display: "flex",
+														alignItems: "center",
+														marginTop: "7px",
+														fontSize: "17px",
+													}}
+												>
 													<FaStar
 														style={{
 															marginRight: "5px",
-															fontSize: "15px",
+															fontSize: "10px",
 															color: "grey",
 														}}
 													/>
 													{value.publication.rating}
 												</span>
+												<p>
+													{value.publication.preface !== undefined &&
+													value.publication.preface !== null &&
+													value.publication.preface.trim() !== "" ? (
+														<div
+															style={{
+																display: "flex",
+																alignItems: "center",
+																fontSize: "12px",
+																border: "1px rgb(221, 221, 221) solid",
+																paddingLeft: "10px",
+															}}
+														>
+															<FaTruck
+																style={{
+																	marginRight: "5px",
+																	color: "rgb(40, 207, 151)",
+																}}
+															/>
+															{value.publication.preface}
+														</div>
+													) : (
+														""
+													)}
+												</p>
 											</div>
 										</div>
 									))}
