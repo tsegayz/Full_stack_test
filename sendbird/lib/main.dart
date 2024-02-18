@@ -51,8 +51,7 @@ class _ChatDetailState extends State<ChatDetail> {
       final message = await _currentChannel.sendUserMessage(params);
 
       setState(() {
-        messages.add(
-            message.message); 
+        messages.add(message.message);
       });
     } catch (e) {
       // Handle errors
@@ -117,9 +116,29 @@ class _ChatDetailState extends State<ChatDetail> {
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(messages[index]),
-                  // Customize ListTile as needed
+                return Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8, right: 8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 3, 28, 49),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Text(
+                        messages[index],
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
