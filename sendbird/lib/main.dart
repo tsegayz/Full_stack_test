@@ -1,6 +1,7 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_const_constructors, sort_child_properties_last, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, await_only_futures, unnecessary_null_comparison, library_private_types_in_public_api, use_key_in_widget_constructors, depend_on_referenced_packages
 
 import 'package:flutter/material.dart';
+import 'package:sendbird_sdk/sendbird_sdk.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -9,7 +10,55 @@ void main() {
   ));
 }
 
-class ChatDetail extends StatelessWidget {
+class ChatDetail extends StatefulWidget {
+  @override
+  _ChatDetailState createState() => _ChatDetailState();
+}
+
+class _ChatDetailState extends State<ChatDetail> {
+  final sendbird = SendbirdSdk(appId: "BC823AD1-FBEA-4F08-8F41-CF0D9D280FBF");
+  late OpenChannel _currentChannel;
+  final textFieldController = TextEditingController();
+  final List<String> messages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    joinOpenChannel();
+  }
+
+  Future<void> joinOpenChannel() async {
+    try {
+      final openChannel = await OpenChannel.getChannel(
+          'sendbird_open_channel_14092_bf4075fbb8f12dc0df3ccc5c653f027186ac9211');
+      await openChannel.enter();
+      setState(() {
+        _currentChannel = openChannel;
+      });
+    } catch (e) {
+      // Handle errors
+    }
+  }
+
+  void sendMessage() async {
+    if (_currentChannel == null) return;
+
+    final messageText = textFieldController.text;
+    textFieldController.clear();
+
+    try {
+      final params = UserMessageParams(message: messageText);
+      final message = await _currentChannel.sendUserMessage(params);
+
+      setState(() {
+        messages.add(
+            message.message); 
+      });
+    } catch (e) {
+      // Handle errors
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -64,6 +113,17 @@ class ChatDetail extends StatelessWidget {
           ],
         ),
         body: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(messages[index]),
+                  // Customize ListTile as needed
+                );
+              },
+            ),
+          ),
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
@@ -84,7 +144,8 @@ class ChatDetail extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                            color: Color.fromARGB(255, 88, 88, 88)), // Add gray border here
+                          color: Color.fromARGB(255, 88, 88, 88),
+                        ),
                         borderRadius: BorderRadius.circular(36),
                       ),
                       child: Container(
@@ -95,11 +156,12 @@ class ChatDetail extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            SizedBox(width: 20,),
+                            SizedBox(width: 20),
                             Expanded(
                               child: TextField(
+                                controller: textFieldController,
                                 style: TextStyle(
-                                  color: Color.fromARGB(255, 0, 0, 0),
+                                  color: Color.fromARGB(255, 235, 235, 235),
                                   fontSize: 20,
                                 ),
                                 decoration: InputDecoration(
@@ -109,9 +171,8 @@ class ChatDetail extends StatelessWidget {
                                     fontSize: 18,
                                   ),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical:
-                                          12), // Adjust vertical padding here
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 12),
                                 ),
                               ),
                             ),
@@ -123,7 +184,7 @@ class ChatDetail extends StatelessWidget {
                                 child: FloatingActionButton(
                                   backgroundColor:
                                       Color.fromARGB(255, 65, 64, 64),
-                                  onPressed: () {},
+                                  onPressed: sendMessage,
                                   child: Icon(
                                     Icons.arrow_upward,
                                     color: Color.fromARGB(255, 38, 38, 39),
