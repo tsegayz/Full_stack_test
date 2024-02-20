@@ -89,34 +89,6 @@ const ImageSlider = () => {
 		{ title: "Appliances", icon: <MdWash /> },
 		{ title: "keyboard", icon: <MdKeyboard /> },
 	];
-	const settings = {
-		dots: false,
-		infinite: true,
-		speed: 500,
-		slidesToShow: 2,
-		slidesToScroll: 1,
-		autoplay: true,
-		autoplaySpeed: 3000,
-		arrows: false,
-		centerPadding: "0%",
-		responsive: [
-			{
-				breakpoint: 1024,
-				settings: {
-					slidesToShow: 3,
-					slidesToScroll: 1,
-				},
-			},
-			{
-				breakpoint: 768,
-				settings: {
-					slidesToShow: 1,
-					slidesToScroll: 1,
-					
-				},
-			},
-		],
-	};
 
 	const scrollLeft = (sliderId) => {
 		const slider = document.getElementById(sliderId);
@@ -134,6 +106,44 @@ const ImageSlider = () => {
 			left: scrollAmount,
 			behavior: "smooth",
 		});
+	};
+	const sliderRef = useRef(null);
+
+	useEffect(() => {
+		const intervalId = setInterval(() => {
+			scrollToRight();
+		}, 10000);
+
+		return () => clearInterval(intervalId);
+	}, []);
+
+	const scrollToLeft = () => {
+		if (sliderRef.current) {
+			const totalWidth = sliderRef.current.scrollWidth;
+			const currentScroll = sliderRef.current.scrollLeft;
+			const clientWidth = sliderRef.current.clientWidth;
+			let newPosition = currentScroll - clientWidth;
+
+			if (newPosition < 0) {
+				newPosition = totalWidth - clientWidth;
+			}
+
+			sliderRef.current.scrollTo({ left: newPosition, behavior: "smooth" });
+		}
+	};
+	const scrollToRight = () => {
+		if (sliderRef.current) {
+			const totalWidth = sliderRef.current.scrollWidth;
+			const currentScroll = sliderRef.current.scrollLeft;
+			const clientWidth = sliderRef.current.clientWidth;
+			let newPosition = currentScroll + clientWidth;
+
+			if (newPosition >= totalWidth) {
+				newPosition = 0;
+			}
+
+			sliderRef.current.scrollTo({ left: newPosition, behavior: "smooth" });
+		}
 	};
 
 	return (
@@ -160,7 +170,7 @@ const ImageSlider = () => {
 				</div>
 				<div className='menuContainer'>
 					<div className='searchContainer'>
-						<MdSearch style={{ color: "rgb(41, 41, 41)", fontSize:'20px' }} />
+						<MdSearch style={{ color: "rgb(41, 41, 41)", fontSize: "20px" }} />
 						<input
 							onClick={toggleSearchdown}
 							type='text'
@@ -177,13 +187,19 @@ const ImageSlider = () => {
 				<div className='loginSignup'>Login / Signup</div>
 			</div>
 			<div className='image-slider-container'>
-				<Slider {...settings}>
+				<div className='slider' ref={sliderRef}>
 					{images.map((image, index) => (
 						<div key={index} className='slide'>
 							<img src={image.pcImageUrl} alt={image.title} />
 						</div>
 					))}
-				</Slider>
+				</div>
+				<button className='arrow prev' onClick={scrollToLeft}>
+					<MdArrowBackIos style={{ fontSize: "20px", paddingLeft: "5px" }} />
+				</button>
+				<button className='arrow next' onClick={scrollToRight}>
+					<MdArrowForwardIos style={{ fontSize: "20px", paddingLeft: "5px" }} />
+				</button>
 			</div>
 			<div className='shortcuts-container'>
 				{shortcuts.map((shortcut) => (
@@ -202,7 +218,7 @@ const ImageSlider = () => {
 								<p>{item.subtitle}</p>
 							</div>
 							<div className='right'>
-								<div className='item-container' ref={containerRef} id='slider'>
+								<div className='item-container'>
 									<div className='scroll-icons left-content'>
 										<MdArrowBackIos
 											className='scroll-trip scroll-icon-left'
@@ -273,7 +289,7 @@ const ImageSlider = () => {
 												</div>
 
 												<p>{value.publication.title}</p>
-												<div className="discount">
+												<div className='discount'>
 													{value.publication.priceInfo.discountRate !==
 														undefined &&
 													value.publication.priceInfo.discountRate !== 0 ? (
@@ -363,8 +379,8 @@ const ImageSlider = () => {
 
 export default ImageSlider;
 
-
-{/* <div className='image-slider-container' >
+{
+	/* <div className='image-slider-container' >
 					{images.map((image, index) => (
 						<div key={index} className='slide'>
 							<img src={image.pcImageUrl} alt={image.title} />
@@ -376,4 +392,5 @@ in the above code i need the
 - mapped images to be aligned horizontally and make the scroll able both using the mouse and using two icons at the end sides of the container left and right 
 - the width of the images should be 70em and height of 40em
 - display 1 image at the screen at a time and some parts of the rest of the images should also be visible 
-- use infinite loop with slides per group */}
+- use infinite loop with slides per group */
+}
