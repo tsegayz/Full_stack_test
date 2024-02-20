@@ -86,7 +86,6 @@ const ImageSlider = () => {
 		{ title: "audio equipment", icon: <MdHeadphones /> },
 		{ title: "camera", icon: <MdCamera /> },
 		{ title: "computer", icon: <MdComputer /> },
-		{ title: "TV", icon: <MdTv /> },
 		{ title: "Appliances", icon: <MdWash /> },
 		{ title: "keyboard", icon: <MdKeyboard /> },
 	];
@@ -94,7 +93,7 @@ const ImageSlider = () => {
 		dots: false,
 		infinite: true,
 		speed: 500,
-		slidesToShow: 3,
+		slidesToShow: 2,
 		slidesToScroll: 1,
 		autoplay: true,
 		autoplaySpeed: 3000,
@@ -152,8 +151,8 @@ const ImageSlider = () => {
 						<div className='dropdownContainer'>
 							{categories.map((category, index) => (
 								<div className='dropdownItem' key={index}>
-									<span style={{ fontSize: "40px" }}> {category.icon} </span>
-									<h4> {category.title} </h4>
+									<span style={{ fontSize: "30px" }}> {category.icon} </span>
+									<p> {category.title} </p>
 								</div>
 							))}
 						</div>
@@ -161,7 +160,7 @@ const ImageSlider = () => {
 				</div>
 				<div className='menuContainer'>
 					<div className='searchContainer'>
-						<MdSearch style={{ color: "rgb(170, 170, 170)" }} />
+						<MdSearch style={{ color: "rgb(41, 41, 41)", fontSize:'20px' }} />
 						<input
 							onClick={toggleSearchdown}
 							type='text'
@@ -177,7 +176,7 @@ const ImageSlider = () => {
 				</div>
 				<div className='loginSignup'>Login / Signup</div>
 			</div>
-			<div className='image-slider-container' id='slider'>
+			<div className='image-slider-container'>
 				<Slider {...settings}>
 					{images.map((image, index) => (
 						<div key={index} className='slide'>
@@ -363,3 +362,18 @@ const ImageSlider = () => {
 };
 
 export default ImageSlider;
+
+
+{/* <div className='image-slider-container' >
+					{images.map((image, index) => (
+						<div key={index} className='slide'>
+							<img src={image.pcImageUrl} alt={image.title} />
+						</div>
+					))}
+			</div>
+
+in the above code i need the 
+- mapped images to be aligned horizontally and make the scroll able both using the mouse and using two icons at the end sides of the container left and right 
+- the width of the images should be 70em and height of 40em
+- display 1 image at the screen at a time and some parts of the rest of the images should also be visible 
+- use infinite loop with slides per group */}
